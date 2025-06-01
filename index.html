@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Calculator AI</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        
+        .heart {
+            color: #ff6b6b;
+            font-size: 24px;
+            margin: 0 5px;
+        }
+        
+        .input-section, .questions-section, .result-section {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .active {
+            display: flex;
+        }
+        
+        input, select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #ff6b6b;
+            outline: none;
+        }
+        
+        button {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #ff5252;
+        }
+        
+        .question {
+            text-align: left;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .meter {
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+            border-radius: 15px;
+            transition: width 1s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .result-text {
+            font-size: 24px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .perfect-match {
+            color: #ff6b6b;
+            font-size: 28px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .hearts-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        
+        .heart-emoji {
+            position: absolute;
+            font-size: 24px;
+            animation: fall linear;
+            color: #ff6b6b;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Love Calculator <span class="heart">❤</span> AI</h1>
+        
+        <div class="input-section active">
+            <p>Enter your names to calculate your love compatibility:</p>
+            <input type="text" id="name1" placeholder="Your name" required>
+            <input type="text" id="name2" placeholder="Partner's name" required>
+            <button id="start-btn">Calculate Love</button>
+        </div>
+        
+        <div class="questions-section">
+            <p>Answer these 10 questions honestly to calculate your love compatibility:</p>
+            <div id="questions-container"></div>
+            <button id="calculate-btn">Calculate Our Love</button>
+        </div>
+        
+        <div class="result-section">
+            <div class="meter">
+                <div class="meter-fill" id="meter-fill">0%</div>
+            </div>
+            <div class="result-text" id="result-text"></div>
+            <button id="restart-btn">Try Again</button>
+        </div>
+    </div>
+    
+    <div class="hearts-rain" id="hearts-rain"></div>
+
+    <script>
+        const questions = [
+            "How often do you think about your partner when you're apart?",
+            "How comfortable are you being your true self around your partner?",
+            "How well do you and your partner resolve conflicts?",
+            "How much do you trust your partner?",
+            "How aligned are your future goals and dreams?",
+            "How much do you appreciate your partner's quirks and imperfections?",
+            "How strong is your physical and emotional connection?",
+            "How much do you support each other's personal growth?",
+            "How well do you communicate your needs and feelings?",
+            "How much joy does your relationship bring to your life?"
+        ];
+        
+        const options = [
+            "Not at all",
+            "Rarely",
+            "Sometimes",
+            "Often",
+            "Constantly"
+        ];
+        
+        const startBtn = document.getElementById('start-btn');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const inputSection = document.querySelector('.input-section');
+        const questionsSection = document.querySelector('.questions-section');
+        const resultSection = document.querySelector('.result-section');
+        const questionsContainer = document.getElementById('questions-container');
+        const meterFill = document.getElementById('meter-fill');
+        const resultText = document.getElementById('result-text');
+        const heartsRain = document.getElementById('hearts-rain');
+        
+        startBtn.addEventListener('click', startQuiz);
+        calculateBtn.addEventListener('click', calculateResult);
+        restartBtn.addEventListener('click', restartQuiz);
+        
+        function startQuiz() {
+            const name1 = document.getElementById('name1').value.trim();
+            const name2 = document.getElementById('name2').value.trim();
+            
+            if (!name1 || !name2) {
+                alert('Please enter both names!');
+                return;
+            }
+            
+            // Check for special case (T and O names)
+            if ((name1.charAt(0).toUpperCase() === 'T' && name2.charAt(0).toUpperCase() === 'O') || 
+                 (name1.charAt(0).toUpperCase() === 'O' && name2.charAt(0).toUpperCase() === 'T')) {
+                showPerfectMatch();
+                return;
+            }
+            
+            inputSection.classList.remove('active');
+            questionsSection.classList.add('active');
+            
+            // Generate questions
+            questionsContainer.innerHTML = '';
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <p>${index + 1}. ${question}</p>
+                    <select id="q${index}">
+                        ${options.map((option, i) => `<option value="${i}">${option}</option>`).join('')}
+                    </select>
+                `;
+                questionsContainer.appendChild(questionDiv);
+            });
+        }
+        
+        function calculateResult() {
+            let totalScore = 0;
+            
+            // Calculate score based on answers (each answer worth 10 points)
+            for (let i = 0; i < questions.length; i++) {
+                const answer = parseInt(document.getElementById(`q${i}`).value);
+                totalScore += (answer + 1) * 2; // Convert 0-4 to 2-10 points per question
+            }
+            
+            // Calculate percentage (min 20%, max 100%)
+            let percentage = Math.min(100, Math.max(20, totalScore));
+            
+            // Add some randomness (up to ±10%)
+            percentage += (Math.random() * 20 - 10);
+            percentage = Math.min(100, Math.max(20, Math.round(percentage)));
+            
+            // Only show results above 60%
+            if (percentage >= 60) {
+                showResult(percentage);
+            } else {
+                alert("Your love compatibility is below 60%. The universe suggests you might need more time to connect deeply.");
+                restartQuiz();
+            }
+        }
+        
+        function showResult(percentage) {
+            questionsSection.classList.remove('active');
+            resultSection.classList.add('active');
+            
+            meterFill.style.width = `${percentage}%`;
+            meterFill.textContent = `${percentage}%`;
+            
+            let message = '';
+            if (percentage >= 90) {
+                message = "Soulmates! Your connection is magical!";
+            } else if (percentage >= 80) {
+                message = "Amazing match! You're deeply connected!";
+            } else if (percentage >= 70) {
+                message = "Strong compatibility! Your love has great potential!";
+            } else {
+                message = "Good match! With work, your love can grow stronger!";
+            }
+            
+            resultText.textContent = message;
+            
+            if (percentage >= 90) {
+                createHeartsRain();
+            }
+        }
+        
+        function showPerfectMatch() {
+            inputSection.classList.remove('active');
+            resultSection.classList.add('active');
+            
+            meterFill.style.width = '100%';
+            meterFill.textContent = '100%';
+            
+            resultText.innerHTML = '<span class="perfect-match">PERFECT MATCH!<br>Destined to be together!</span>';
+            
+            createHeartsRain();
+        }
+        
+        function restartQuiz() {
+            resultSection.classList.remove('active');
+            inputSection.classList.add('active');
+            document.getElementById('name1').value = '';
+            document.getElementById('name2').value = '';
+            heartsRain.style.display = 'none';
+            heartsRain.innerHTML = '';
+        }
+        
+        function createHeartsRain() {
+            heartsRain.style.display = 'block';
+            heartsRain.innerHTML = '';
+            
+            for (let i = 0; i < 50; i++) {
+                createHeart();
+            }
+            
+            setInterval(createHeart, 300);
+        }
+        
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart-emoji';
+            heart.innerHTML = '❤';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 2 + 's';
+            heart.style.opacity = Math.random() * 0.5 + 0.5;
+            heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+            
+            heartsRain.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+  </html>
